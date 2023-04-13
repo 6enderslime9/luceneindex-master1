@@ -1,0 +1,14 @@
+#server:
+#  port: 8080
+server:
+  port: 9090
+
+
+logging:
+# file和path不能同时生效
+  file: /var/tmp/luceneindex.log
+#spring:
+#  devtools:
+#    restart:
+#      additional-paths: src/main/java
+#      enabled: true

@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>中国共产党党内文献知识库及检索系统</title>
+    <meta charset="utf-8">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/bootstrap-table.css">
+    <script src="js/jquery.min.js"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="js/bootstrap-table.js"></script>
+    <script src="js/bootstrap-table-zh-CN.js"></script>
+</head>
+<body>
+<div class="container">
+    <h1>中国共产党党内文献知识库及检索系统</h1>
+    <div id="the_div"></div>
+    <!-- <p class="lead">若为初次使用，请点击建立索引，索引文件较大，请耐心等待索引完成提示!</p>
+    <div class="alert alert-info" role="alert">请将需要建立索引的文件放置于用户主目录下的
+        <mark>lucenedir</mark>
+        文件夹，生成的索引文件将放置于
+        <mark>luceneidx</mark>
+        文件夹
+    </div> -->
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- <button type="button" class="btn btn-default" id="loadSite">爬取数据</button>
+            <button type="button" class="btn btn-default" id="index">刷新索引</button> -->
+        </div>
+        <span class="col-lg-12"></span>
+        <div class="col-lg-12">
+            <div class="input-group">
+                <input type="text" class="form-control" id="keyword" placeholder="请输入关键字...">
+                <span class="input-group-btn">
+        <button class="btn  btn-primary btn-default" type="button" id="search">开始检索</button>
+      </span>
+            </div>
+        </div>
+    </div>
+    <table id="table"
+           data-height="560"
+           data-pagination="true"
+           data-search="true"
+           data-striped="true"
+    >
+        <thead>
+        	<div id="msg" style="text-align: center;" >
+	        	<div><br></div>
+	        	<div><br></div>
+	        	<div>欢迎使用中国共产党党内文献知识库及检索系统</div>
+	        	<div><hr></div>
+        	</div>
+        </thead>
+    </table>
+	        	 <div class="col-lg-12" style="text-align: center;">
+		            <button type="button" class="btn btn-default" id="loadSite">爬取数据</button>
+		            <button type="button" class="btn btn-default" id="index">刷新索引</button> 
+	        	</div>
+</div>
+<script>
+    //    var queryParams = function (params) {
+    //        var param = {
+    //            keyword: $("#keyword").val()
+    //            pageIndex: Math.ceil(params.offset / params.limit) + 1,
+    //            pageSize: params.limit,
+    //            order: params.order,
+    //            ordername: params.sort,
+    //            startDateTime: $("#dateSearch .startDate").val(),
+    //            endDateTime: $("#dateSearch .endDate").val(),
+    //            search: $("#dateSearch .imuserid").val()
+    //        };
+    //        return param;
+    //    };
+    //触发搜索按钮的点击事件
+    $("#keyword").keydown(function (e) {
+        if (e.which == 13) {
+            $('#search').click();
+        }
+    });
+
+    $("#loadSite").click(function () {
+        var msg = "处理时间较长，请耐心等待...";
+        if (confirm(msg) == true) {
+            $.get("loadSite", function (data) {
+                alert(data.message);
+            });
+        }
+    });
+    $("#index").click(function () {
+        var msg = "确认要重新建立索引吗？原来建立的索引会被删除!!!";
+        if (confirm(msg) == true) {
+            $.get("indexInit", function (data) {
+                alert(data.message);
+            });
+        }
+    });
+
+    $("#search").click(function () {
+    
+    document.getElementById("msg").style.display="none";
+//        使用jquery ajax查询
+//        $.ajax({
+//            type: "POST",
+//            url: "searchFiles",
+//            data: {keyword: $("#keyword").val()},
+        //tostring显示内容，message显示json数据
+//            success: function (msg) {
+//                alert(msg.message);
+        //必须使用destroy方法,否则无法刷新
+        $('#table').bootstrapTable('destroy').bootstrapTable({
+            method: 'post',
+            url: 'searchLuncene/?' + 'keyword=' + $("#keyword").val(),
+            sortable: false,
+//                    clickToSelect: true,
+            pageSize: 10,
+            cache: false,
+            showRefresh: true,
+            showToggle: true,
+            dataType: "json",
+//                    contentType: 'application/json,charset=utf-8',
+//                    queryParams: {keyword: "wang"},
+            columns: [{
+                title: '编号',
+                formatter: function (value, row, index) {
+                         return index+1;
+                 }
+            }, {/*
+                field: 'classes',
+                title: 'classes'
+            }, { */
+                field: 'title',
+                title: '相关主题',
+                 formatter:function (value, row, index,field) {
+                 	var span=document.createElement('span');
+					span.setAttribute('title',value);
+					span.innerHTML = value;
+					return span.outerHTML;
+			        //return "<span style='display: block;overflow: hidden;text-overflow: ellipsis;' title="+value+">"+value+"</span>"
+			    },
+                cellStyle:function (value, row, index,field) {
+			        return {
+			            css:{
+			                "white-space":"nowrap",
+			                "text-overflow":"ellipsis",
+			                "overflow":"hidden",
+			                "max-width":"600px",
+			            }
+			        }
+			    }
+            /* }, {
+                field: 'created',
+                title: '发布时间' */
+            }, {
+                field: 'sign',
+                title: '作者',
+                formatter:function (value, row, index,field) {
+			        return "<span style='display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;' title="+value+">"+value.substring(value.indexOf("编辑")+3)+"</span>"
+			    },
+                cellStyle:function (value, row, index,field) {
+			        return {
+			            css:{
+			                "min-width":"120px",
+			                "white-space":"nowrap",
+			                "text-overflow":"ellipsis",
+			                "overflow":"hidden",
+			                "max-width":"200px",
+			            }
+			        }
+			    }
+             }, {
+                field: 'sign',
+                title: '发布时间',
+                formatter:function (value, row, index,field) {
+			        return "<span style='display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;' title="+value+">"+value.substring(value.indexOf("发布时间")+5,value.indexOf("来源"))+"</span>"
+			    },
+                cellStyle:function (value, row, index,field) {
+			        return {
+			            css:{
+			                "min-width":"120px",
+			                "white-space":"nowrap",
+			                "text-overflow":"ellipsis",
+			                "overflow":"hidden",
+			                "max-width":"200px",
+			            }
+			        }
+			    }
+            }, {
+                field: 'sign',
+                title: '数据来源',
+                formatter:function (value, row, index,field) {
+			        return "<span style='display: block;overflow: hidden;text-overflow: ellipsis;white-space: nowrap;' title="+value+">"+value.substring(value.indexOf("来源")+3,value.indexOf("编辑"))+"</span>"
+			    },
+                cellStyle:function (value, row, index,field) {
+			        return {
+			            css:{
+			                "min-width":"120px",
+			                "white-space":"nowrap",
+			                "text-overflow":"ellipsis",
+			                "overflow":"hidden",
+			                "max-width":"200px",
+			            }
+			        }
+			    }
+            }, {
+                field: 'id',
+                title: '查看详情',
+                formatter: aFormatter //添加超链接的方法
+            }]
+        });
+        
+    });
+        function aFormatter(value, row, index) {
+			return [
+				'<a target=_blank href="view?id='+value+'   ">查看</a>'
+			].join("")
+		};
+</script>
+</body>
+</html>
